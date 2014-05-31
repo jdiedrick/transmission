@@ -43,8 +43,12 @@ class ofApp : public ofxiOSApp {
         //------------------- for the simple sine wave synthesis
         float aFrequency;
         float eFrequency;
-        float phase;
-        float phaseAdder;
+        float aPhase;
+        float ePhase;
+        float aPhaseAdder;
+        float ePhaseAdder;
+    
+    
         float aPhaseAdderTarget;
         float ePhaseAdderTarget;
 

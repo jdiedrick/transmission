@@ -34,10 +34,12 @@ void ofApp::guiEvent(ofxUIEventArgs &e){
         ofBackground(slider->getScaledValue());
     }
     else if (e.getName()=="A"){
+            aPhase = 0;
             ofxUIToggle* toggle = e.getToggle();
             aIsToggled = toggle->getValue();
         }
     else if (e.getName()=="E"){
+            ePhase = 0;
                 ofxUIToggle* toggle = e.getToggle();
                 eIsToggled = toggle->getValue();
             }
@@ -47,7 +49,10 @@ void ofApp::guiEvent(ofxUIEventArgs &e){
 //--------------------------------------------------------------
 void ofApp::setupUI(){
     
+    //ofSetOrientation(OF_ORIENTATION_DEFAULT);
     gui = new ofxUICanvas();
+    gui->setWidth(ofGetWidth());
+    gui->setHeight(ofGetHeight());
     gui->setFont("GUI/faucet.ttf");
     //setup background color slider
     gui->addSlider("BACKGROUND", 0.0, 255.0, 100.0);
@@ -111,7 +116,7 @@ void ofApp::setupAudio(){
     // IMPORTANT!!! if your sound doesn't work in the simulator - read this post - which requires you set the output stream to 24bit
 	//	http://www.cocos2d-iphone.org/forum/topic/4159
     
-	ofSetOrientation(OF_ORIENTATION_90_RIGHT);//Set iOS to Orientation Landscape Right
+	//ofSetOrientation(OF_ORIENTATION_90_RIGHT);//Set iOS to Orientation Landscape Right
     
 	ofBackground(255, 255, 255);
     
@@ -122,8 +127,10 @@ void ofApp::setupAudio(){
 	// 4 num buffers (latency)
     
 	sampleRate = 44100;
-	phase = 0;
-	phaseAdder = 0.0f;
+    aPhase = 0;
+    ePhase = 0;
+	aPhaseAdder = 0.0f;
+    ePhaseAdder = 0.0f;
 	aPhaseAdderTarget = 0.0;
     ePhaseAdderTarget = 0.0;
 	volume = 0.15f;
@@ -171,34 +178,60 @@ void ofApp::audioOut(float * output, int bufferSize, int nChannels){
     
 	// sin (n) seems to have trouble when n is very large, so we
 	// keep phase in the range of 0-TWO_PI like this:
-	while(phase > TWO_PI){
-		phase -= TWO_PI;
+	while(aPhase > TWO_PI){
+		aPhase -= TWO_PI;
 	}
     
-	if(aIsToggled == true){
-
-		phaseAdder = 0.95f * phaseAdder + 0.05f * aPhaseAdderTarget;
+    while(ePhase > TWO_PI){
+		ePhase -= TWO_PI;
+	}
+    
+    
+	if(aIsToggled == true && eIsToggled){
+        
+		aPhaseAdder = 0.95f * aPhaseAdder + 0.05f * aPhaseAdderTarget;
+        ePhaseAdder = 0.95f * ePhaseAdder + 0.05f * ePhaseAdderTarget;
+        
 		for(int i = 0; i < bufferSize; i++){
-			phase += phaseAdder;
-            float sample = sin(phase); // sine wave
+			aPhase += aPhaseAdder;
+            ePhase += ePhaseAdder;
+            float aSample = sin(aPhase); // sine wave
+            float eSample = sin(ePhase);
+            //float sample = sin(phase)>0?1:-1; // square wave
+            //float sample = fmod(phase,TWO_PI); // saw wave..maybe?
+			lAudio[i] = output[i * nChannels] = (aSample + eSample)/2 * volume * leftScale;
+			rAudio[i] = output[i * nChannels + 1] = (aSample + eSample)/2 * volume * rightScale;
+		}
+        
+    }
+    
+	else
+        if(aIsToggled == true){
+
+		aPhaseAdder = 0.95f * aPhaseAdder + 0.05f * aPhaseAdderTarget;
+		for(int i = 0; i < bufferSize; i++){
+			aPhase += aPhaseAdder;
+            float sample = sin(aPhase); // sine wave
             //float sample = sin(phase)>0?1:-1; // square wave
             //float sample = fmod(phase,TWO_PI); // saw wave..maybe?
 			lAudio[i] = output[i * nChannels] = sample * volume * leftScale;
 			rAudio[i] = output[i * nChannels + 1] = sample * volume * rightScale;
 		}
 	}
+    
     else if(eIsToggled == true){
         
-		phaseAdder = 0.95f * phaseAdder + 0.05f * ePhaseAdderTarget;
+		ePhaseAdder = 0.95f * ePhaseAdder + 0.05f * ePhaseAdderTarget;
 		for(int i = 0; i < bufferSize; i++){
-			phase += phaseAdder;
-            float sample = sin(phase); // sine wave
+			ePhase += ePhaseAdder;
+            float sample = sin(ePhase); // sine wave
             //float sample = sin(phase)>0?1:-1; // square wave
             //float sample = fmod(phase,TWO_PI); // saw wave..maybe?
 			lAudio[i] = output[i * nChannels ] = sample * volume * leftScale;
 			rAudio[i] = output[i * nChannels + 1] = sample * volume * rightScale;
 		}
 	}
+    
     
 	
 }
