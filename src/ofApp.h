@@ -35,7 +35,8 @@ class ofApp : public ofxiOSApp {
         float pan;
         int sampleRate;
         bool bNoise;
-        float volume;
+        float aVolume;
+        float eVolume;
     
         float * lAudio;
         float * rAudio;
@@ -60,6 +61,8 @@ class ofApp : public ofxiOSApp {
     
         //E note
         bool eIsToggled;
+    
+        int aSynthMode;
 
     
 };
