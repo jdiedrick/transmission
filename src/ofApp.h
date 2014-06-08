@@ -4,6 +4,7 @@
 #include "ofxiOS.h"
 #include "ofxiOSExtras.h"
 #include "ofxUI.h"
+#include "oscillator.h"
 
 class ofApp : public ofxiOSApp {
 	
@@ -32,38 +33,18 @@ class ofApp : public ofxiOSApp {
         //audio
         void setupAudio();
         void audioOut(float * output, int bufferSize, int nChannels);
-        float pan;
-        int sampleRate;
-        bool bNoise;
-        float aVolume;
-        float eVolume;
-    
-        float * lAudio;
-        float * rAudio;
-    
-        //------------------- for the simple sine wave synthesis
-        float aFrequency;
-        float eFrequency;
-        float aPhase;
-        float ePhase;
-        float aPhaseAdder;
-        float ePhaseAdder;
-    
-    
-        float aPhaseAdderTarget;
-        float ePhaseAdderTarget;
-
+        float sampleRate;
         int initialBufferSize;
-    
-    
+        
         //A note
         bool aIsToggled;
-    
         //E note
         bool eIsToggled;
     
-        int aSynthMode;
-
+        oscillator a;
+        oscillator e;
+        float * soundBuffer;
+    
     
 };
 
